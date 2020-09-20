@@ -35,7 +35,7 @@ def main(exp_name=None, fusion=False, latent_dim=3):
     batch_size = 16
     meta_batch_size = 50
     max_itrs = 20
-    pre_epoch = 1000
+    pre_epoch = 10
     entropy_weight = 1.0
     reward_arch = relu_net
     if reward_arch == relu_net:
@@ -110,7 +110,7 @@ def main(exp_name=None, fusion=False, latent_dim=3):
         irl_model=irl_model,
         randomize_policy=True,
         pretrain_model=pretrain_model,
-        n_itr=3000,
+        n_itr=100,
         meta_batch_size=meta_batch_size,
         batch_size=batch_size,
         max_path_length=max_path_length,
@@ -122,6 +122,9 @@ def main(exp_name=None, fusion=False, latent_dim=3):
         zero_environment_reward=True,
         baseline=LinearFeatureBaseline(env_spec=env.spec),
         turn_on_wandb=args.turn_on_wandb,
+        render_env=True,
+        gif_dir='logs/maze_wall_meta_irl',
+        gif_header='',
         wandb_entity=args.wandb_entity,
         wandb_project=args.wandb_project,
         wandb_run_name=args.wandb_run_name,

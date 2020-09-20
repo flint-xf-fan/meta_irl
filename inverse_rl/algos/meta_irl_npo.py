@@ -8,6 +8,8 @@ import tensorflow.compat.v1 as tf
 import numpy as np
 from sandbox.rocky.tf.optimizers.conjugate_gradient_optimizer import ConjugateGradientOptimizer
 
+import wandb
+
 
 class MetaIRLNPO(MetaIRLBatchPolopt):
     """
@@ -26,6 +28,7 @@ class MetaIRLNPO(MetaIRLBatchPolopt):
         self.optimizer = optimizer
         self.step_size = step_size
         self.pol_ent_wt = entropy_weight
+
         super(MetaIRLNPO, self).__init__(**kwargs)
 
     @overrides

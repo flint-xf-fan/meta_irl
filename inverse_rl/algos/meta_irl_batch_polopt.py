@@ -1,3 +1,4 @@
+import os
 import time
 
 import wandb
@@ -12,7 +13,9 @@ from sandbox.rocky.tf.samplers.vectorized_sampler import VectorizedSampler
 import numpy as np
 from collections import deque
 from scipy.stats import pearsonr, spearmanr
+
 from inverse_rl.utils.hyperparametrized import Hyperparametrized
+from inverse_rl.utils.render import render_env
 
 
 class MetaIRLBatchPolopt(RLAlgorithm):
@@ -128,13 +131,21 @@ class MetaIRLBatchPolopt(RLAlgorithm):
         self.sampler = sampler_cls(self, **sampler_args)
         self.init_opt()
 
-        self._log_wandb = turn_on_wandb
+        self._log_wandb = kwargs['turn_on_wandb']
+        if kwargs['render_env']:
+            self._render = True
+            self._gif_dir = kwargs['gif_dir']
+            self._gif_header = kwargs['gif_header']
+        self._render = True
         self._wandb_dict = {}
         if self._log_wandb:
-            wandb.init(entity=wandb_entity,
-                       project=wandb_project,
-                       name=wandb_run_name,
-                       monitor_gym=wandb_monitor_gym)
+            # wandb_monitor_gym = kwargs['wandb_monitor_gym']
+            # if wandb_monitor_gym:
+            wandb.init(
+                entity=kwargs['wandb_entity'],
+                project=kwargs['wandb_project'],
+                name=kwargs['wandb_run_name'],
+            )
 
     def start_worker(self):
         self.sampler.start_worker()
@@ -239,7 +250,7 @@ class MetaIRLBatchPolopt(RLAlgorithm):
             logger.record_tabular('spearman', spearman)
             logger.record_tabular('pearsonr', pearson)
             self._wandb_dict['spearman'] = spearman
-            self._wandb_dict['pearsonr'] = pearsonr
+            self._wandb_dict['pearsonr'] = pearson
         except:
             import pdb
             pdb.set_trace()
@@ -347,12 +358,12 @@ class MetaIRLBatchPolopt(RLAlgorithm):
                 logger.log("Saving snapshot...")
                 params = self.get_itr_snapshot(itr,
                                                samples_data)  # , **kwargs)
-                if self.store_paths:
-                    params["paths"] = {
-                        key: samples_data[key]["paths"]
-                        for key in samples_data.keys()
-                    }
-                logger.save_itr_params(itr, params)
+                # if self.store_paths:
+                #     params["paths"] = {
+                #         key: samples_data[key]["paths"]
+                #         for key in samples_data.keys()
+                #     }
+                # logger.save_itr_params(itr, params)
                 logger.log("Saved")
                 duration = time.time() - start_time
                 itr_duration = time.time() - itr_start_time
@@ -364,6 +375,18 @@ class MetaIRLBatchPolopt(RLAlgorithm):
 
                 logger.dump_tabular(with_prefix=False)
 
+                if self._render:
+                    fn = self._gif_header + str(itr) + '.gif'
+                    # obtain gym.env from rllab.env
+                    render_env(env.wrapped_env.env,
+                               path=self._gif_dir,
+                               filename=fn)
+                    if self._log_wandb:
+                        full_fn = os.path.join(os.getcwd(), self._gif_dir, fn)
+                        wandb.log({
+                            "video":
+                            wandb.Video(full_fn, fps=60, format="gif")
+                        })
                 if self._log_wandb:
                     wandb.log(self._wandb_dict)
 
