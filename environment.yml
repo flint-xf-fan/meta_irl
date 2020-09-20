@@ -18,18 +18,23 @@ dependencies:
     - pip
     # - joblib
     - pip:
-        - https://download.pytorch.org/whl/cu100/torch-1.0.0-cp36-cp36m-linux_x86_64.whl
-        # - torchvision
-        # - numpy
-        # - gym==0.9.3
-        # - mujoco-py==0.5.7
-        # - matplotlib
-        # - cached_property
-        # - pyprind
-        # - boto3
+        - boto3
+        - cached_property
+        - cloudpickle
         - git+https://github.com/neocxi/Lasagne.git@484866cf8b38d878e92d521be445968531646bb8#egg=Lasagne
-          # https://github.com/evdcush/TensorFlow-wheels/releases/download/tf-1.11.0-gpu-10.0_7.3_5.0-mkl/tensorflow-1.11.0-cp36-cp36m-linux_x86_64.whl
-        - https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1.0.1-cp36-cp36m-linux_x86_64.whl
-        # - https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.0.1-cp36-cp36m-manylinux2010_x86_64.whl
         - git+https://github.com/rll/rllab.git
-        # - cloudpickle
+        - gym==0.9.3
+        - https://download.pytorch.org/whl/cu100/torch-1.0.0-cp36-cp36m-linux_x86_64.whl
+        - https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1.0.1-cp36-cp36m-linux_x86_64.whl
+        - matplotlib
+        - mujoco-py==0.5.7
+        - numpy
+        - pyglet==1.3.2
+        - pyprind
+        - torch==1.6.0
+        - torchvision
+        # uncomment if want to plot on server
+        # - pyvirtualdisplay
+        # - xvfbwrapper==0.2.9
+        - yapf
+        - wandb
