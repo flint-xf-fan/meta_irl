@@ -10,6 +10,7 @@ import numpy as np
 
 from inverse_rl.utils.hyperparametrized import extract_hyperparams
 
+
 @contextlib.contextmanager
 def rllab_logdir(algo=None, dirname=None):
     if dirname:
@@ -77,14 +78,18 @@ def load_experts(fname, max_files=float('inf'), min_return=None, latent_dim=0):
 
 
 def load_latest_experts(logdir, n=5, min_return=None, latent_dim=0):
-    return load_experts(get_expert_fnames(logdir, n=n), min_return=min_return, latent_dim=latent_dim)
+    return load_experts(get_expert_fnames(logdir, n=n),
+                        min_return=min_return,
+                        latent_dim=latent_dim)
 
 
 def load_latest_experts_multiple_runs(logdir, n=5, latent_dim=0):
     paths = []
     for i, dirname in enumerate(os.listdir(logdir)):
+        print('here')
         dirname = os.path.join(logdir, dirname)
         if os.path.isdir(dirname):
             print('Loading experts from %s' % dirname)
-            paths.extend(load_latest_experts(dirname, n=n, latent_dim=latent_dim))
+            paths.extend(
+                load_latest_experts(dirname, n=n, latent_dim=latent_dim))
     return paths

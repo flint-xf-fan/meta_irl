@@ -1,3 +1,5 @@
+import os
+
 import time
 from rllab.algos.base import RLAlgorithm
 import rllab.misc.logger as logger
@@ -6,8 +8,10 @@ import tensorflow.compat.v1 as tf
 from sandbox.rocky.tf.samplers.batch_sampler import BatchSampler
 from sandbox.rocky.tf.samplers.vectorized_sampler import VectorizedSampler
 from rllab.sampler.utils import rollout
+import wandb
 
 from inverse_rl.utils.hyperparametrized import Hyperparametrized
+from inverse_rl.utils.render import render_env
 
 
 class BatchPolopt(RLAlgorithm):
@@ -86,6 +90,22 @@ class BatchPolopt(RLAlgorithm):
             sampler_args = dict()
         self.sampler = sampler_cls(self, **sampler_args)
         self.init_opt()
+        self._log_wandb = kwargs['turn_on_wandb']
+        if kwargs['render_env']:
+            self._render = True
+            self._gif_dir = kwargs['gif_dir']
+            self._gif_header = kwargs['gif_header']
+        self._render = True
+        self._wandb_dict = None
+        if self._log_wandb:
+            self._wandb_dict = {}
+            # wandb_monitor_gym = kwargs['wandb_monitor_gym']
+            # if wandb_monitor_gym:
+            wandb.init(
+                entity=kwargs['wandb_entity'],
+                project=kwargs['wandb_project'],
+                name=kwargs['wandb_run_name'],
+            )
 
     def start_worker(self):
         self.sampler.start_worker()
@@ -118,7 +138,7 @@ class BatchPolopt(RLAlgorithm):
                 logger.log("Logging diagnostics...")
                 self.log_diagnostics(paths)
                 logger.log("Optimizing policy...")
-                self.optimize_policy(itr, samples_data)
+                self.optimize_policy(itr, samples_data, self._wandb_dict)
                 logger.log("Saving snapshot...")
                 params = self.get_itr_snapshot(itr,
                                                samples_data)  # , **kwargs)
@@ -137,6 +157,21 @@ class BatchPolopt(RLAlgorithm):
                     if self.pause_for_plot:
                         input("Plotting evaluation run: Press Enter to "
                               "continue...")
+                if self._render:
+                    fn = self._gif_header + str(itr) + '.gif'
+                    # obtain gym.env from rllab.env
+                    render_env(self.env.wrapped_env.env,
+                               path=self._gif_dir,
+                               filename=fn)
+                    if self._log_wandb:
+                        full_fn = os.path.join(os.getcwd(), self._gif_dir, fn)
+                        wandb.log({
+                            "video":
+                            wandb.Video(full_fn, fps=60, format="gif")
+                        })
+                if self._log_wandb:
+                    wandb.log(self._wandb_dict)
+
         self.shutdown_worker()
         if created_session:
             sess.close()
