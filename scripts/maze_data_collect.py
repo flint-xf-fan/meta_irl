@@ -1,3 +1,5 @@
+import argparse
+
 import tensorflow.compat.v1 as tf
 
 from inverse_rl.algos.trpo import TRPO
@@ -9,6 +11,20 @@ from rllab.baselines.linear_feature_baseline import LinearFeatureBaseline
 from inverse_rl.envs.env_utils import CustomGymEnv
 from inverse_rl.utils.log_utils import rllab_logdir
 from inverse_rl.utils.hyper_sweep import run_sweep_parallel, run_sweep_serial
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--pre_epoch', type=int, default=1000)
+parser.add_argument('--n_itr', type=int, default=3000)
+parser.add_argument('--turn_on_wandb', action='store_true')
+parser.add_argument('--wandb_entity', type=str, default='sff1019')
+parser.add_argument('--wandb_project',
+                    type=str,
+                    default='reinforcement_learning_algorithms')
+parser.add_argument('--wandb_run_name',
+                    type=str,
+                    default='metairl-maze_wall_collect_trpo')
+parser.add_argument('--wandb_monitor_gym', action='store_true')
+args = parser.parse_args()
 
 
 def main(exp_name, ent_wt=1.0, discrete=True):
@@ -40,6 +56,14 @@ def main(exp_name, ent_wt=1.0, discrete=True):
             entropy_weight=ent_wt,
             baseline=LinearFeatureBaseline(env_spec=env.spec),
             exp_name=exp_name,
+            turn_on_wandb=args.turn_on_wandb,
+            render_env=True,
+            gif_dir='logs/maze_wall_meta_irl',
+            gif_header='',
+            wandb_entity=args.wandb_entity,
+            wandb_project=args.wandb_project,
+            wandb_run_name=args.wandb_run_name,
+            wandb_monitor_gym=args.wandb_monitor_gym,
         )
         if discrete:
             output = 'data/maze_left_data_collect_discrete-15/%s' % exp_name
@@ -54,6 +78,7 @@ if __name__ == "__main__":
         'ent_wt': [0.1],
         'discrete': [
             True
+            # False
         ]  # Setting discrete to 'True' to get training data, 'False' to get test data (test unseen positions)
     }
-    run_sweep_parallel(main, params_dict, repeat=4)
+    run_sweep_parallel(main, params_dict, repeat=1)

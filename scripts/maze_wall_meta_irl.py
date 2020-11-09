@@ -1,3 +1,4 @@
+import os
 import argparse
 import tensorflow.compat.v1 as tf
 
@@ -18,6 +19,8 @@ from inverse_rl.utils.log_utils import rllab_logdir, load_latest_experts, load_l
 from inverse_rl.models.architectures import relu_net, linear_net
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--pre_epoch', type=int, default=1000)
+parser.add_argument('--n_itr', type=int, default=3000)
 parser.add_argument('--turn_on_wandb', action='store_true')
 parser.add_argument('--wandb_entity', type=str, default='sff1019')
 parser.add_argument('--wandb_project',
@@ -35,7 +38,7 @@ def main(exp_name=None, fusion=False, latent_dim=3):
     batch_size = 16
     meta_batch_size = 50
     max_itrs = 20
-    pre_epoch = 10
+    pre_epoch = args.pre_epoch
     entropy_weight = 1.0
     reward_arch = relu_net
     if reward_arch == relu_net:
@@ -110,7 +113,7 @@ def main(exp_name=None, fusion=False, latent_dim=3):
         irl_model=irl_model,
         randomize_policy=True,
         pretrain_model=pretrain_model,
-        n_itr=100,
+        n_itr=args.n_itr,
         meta_batch_size=meta_batch_size,
         batch_size=batch_size,
         max_path_length=max_path_length,
@@ -139,8 +142,9 @@ def main(exp_name=None, fusion=False, latent_dim=3):
             imitation_coeff, info_coeff, meta_batch_size, batch_size, max_itrs,
             pre_epoch, entropy_weight, layers, d_hidden, exp_name)
 
+    config = get_session_config()
     with rllab_logdir(algo=algo, dirname=dirname):
-        with tf.Session():
+        with tf.Session(config=config):
             algo.train()
 
 
