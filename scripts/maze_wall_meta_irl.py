@@ -19,8 +19,8 @@ from inverse_rl.utils.log_utils import rllab_logdir, load_latest_experts, load_l
 from inverse_rl.models.architectures import relu_net, linear_net
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--pre_epoch', type=int, default=1000)
-parser.add_argument('--n_itr', type=int, default=3000)
+parser.add_argument('--pre_epoch', type=int, default=10)
+parser.add_argument('--n_itr', type=int, default=30)
 parser.add_argument('--turn_on_wandb', action='store_true')
 parser.add_argument('--wandb_entity', type=str, default='sff1019')
 parser.add_argument('--wandb_project',
